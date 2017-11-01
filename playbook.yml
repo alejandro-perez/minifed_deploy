@@ -1,5 +1,103 @@
 - hosts: all
   tasks:
     - name: Upgrade system
-      apt: upgrade=dist update_cache=yes
+      apt:
+        upgrade: dist
+        update_cache: yes
+        dpkg_options: 'force-confold,force-confdef'
+        cache_valid_time: 3600
       become: true
+
+    - name: Install git
+      apt:
+        name: git
+        state: latest
+      become: true
+
+    - name: Install python3 PIP
+      apt:
+        name: python3-pip
+        state: latest
+      become: true
+
+    - name: Install build-essential
+      apt:
+        name: build-essential
+        state: latest
+      become: true
+
+    - name: Install libssl-dev
+      apt:
+        name: libssl-dev
+        state: latest
+      become: true
+
+    - name: Install libffi-dev
+      apt:
+        name: libffi-dev
+        state: latest
+      become: true
+
+    - name: Download pyoidc
+      git:
+        repo: https://github.com/OpenIDC/pyoidc.git
+        dest: "{{ansible_env.HOME}}/pyoidc"
+
+    - name: Download fedoidc (the last commit that worked)
+      git:
+        repo: https://github.com/OpenIDC/fedoidc.git
+        dest: "{{ansible_env.HOME}}/fedoidc"
+        version: f4108685f42b34f5bf9a4316e04fd19e52b5e432
+
+    - name: Install pyoidc
+      shell: "python3 setup.py install"
+      args:
+        chdir: "{{ansible_env.HOME}}/pyoidc"
+      become: true
+
+    - name: Install cherrypy
+      pip:
+        executable: pip3
+        name: cherrypy
+      become: true
+
+    - name: Install pysaml2
+      pip:
+        executable: pip3
+        name: pysaml2
+      become: true
+
+    - name: Install fedoidc
+      shell: "python3 setup.py install"
+      args:
+        chdir: "{{ansible_env.HOME}}/fedoidc"
+      become: true
+
+    - name: Deploy minifed
+      shell: "fed_oprp_setup.py {{ansible_env.HOME}}/fedoidc/ {{ansible_env.HOME}}/deploy"
+
+    - name: Copy OP config file
+      shell: "cp {{ansible_env.HOME}}/deploy/op/fed_op_config.py  {{ansible_env.HOME}}/deploy/op/config.py"
+
+    - name: Copy RP config file
+      shell: "cp {{ansible_env.HOME}}/deploy/rp/fed_rp_conf.py {{ansible_env.HOME}}/deploy/rp/config.py"
+
+    - name: Setup
+      shell: "./setup.sh"
+      args:
+        chdir: "{{ansible_env.HOME}}/deploy"
+
+    - name: Create OP cert
+      shell: 'openssl req -x509 -newkey rsa:4096 -keyout key.pem -nodes -out cert.pem -days 365  -subj "/CN=testop"'
+      args:
+        chdir: "{{ansible_env.HOME}}/deploy/op/certs"
+
+    - name: Create RP cert
+      shell: 'openssl req -x509 -newkey rsa:4096 -keyout key.pem -nodes -out cert.pem -days 365  -subj "/CN=testrp"'
+      args:
+        chdir: "{{ansible_env.HOME}}/deploy/rp/certs"
+
+    - name: Launch
+      shell: "pkill python3; nohup ./run.sh"
+      args:
+        chdir: "{{ansible_env.HOME}}/deploy/"

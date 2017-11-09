@@ -1,5 +1,28 @@
 - hosts: all
+  vars:
+    # This will be used for the OP's ISSUER and RP's BASEURL.
+    hostname: "localhost"
   tasks:
+    - name: Install minifed systemd unit
+      copy:
+        src: minifed.service
+        dest: /etc/systemd/system/minifed.service
+      become: true
+
+    - name: Replace home directory in systemd unit
+      lineinfile:
+        path: "/etc/systemd/system/minifed.service"
+        regexp: "WorkingDirectory=/home/ubuntu/deploy"
+        line: "WorkingDirectory={{ansible_env.HOME}}/deploy"
+      become: true
+
+    - name: Replace ExecStart directory in systemd unit
+      lineinfile:
+        path: "/etc/systemd/system/minifed.service"
+        regexp: "ExecStart=/home/ubuntu/deploy/run.sh"
+        line: "ExecStart={{ansible_env.HOME}}/deploy/run.sh"
+      become: true
+
     - name: Upgrade system
       apt:
         upgrade: dist
@@ -82,6 +105,18 @@
     - name: Copy RP config file
       shell: "cp {{ansible_env.HOME}}/deploy/rp/fed_rp_conf.py {{ansible_env.HOME}}/deploy/rp/config.py"
 
+    - name: Replace ISSUER in OP's config file
+      lineinfile:
+        path: "{{ansible_env.HOME}}/deploy/op/config.py"
+        regexp: "ISSUER = 'https://localhost'"
+        line: "ISSUER = 'https://{{hostname}}'"
+
+    - name: Replace BASEURL in OP's config file
+      lineinfile:
+        path: "{{ansible_env.HOME}}/deploy/rp/config.py"
+        regexp: BASEURL = "https://localhost"
+        line: BASEURL = "https://{{hostname}}"
+
     - name: Setup
       shell: "./setup.sh"
       args:
@@ -97,7 +132,11 @@
       args:
         chdir: "{{ansible_env.HOME}}/deploy/rp/certs"
 
-    - name: Launch
-      shell: "pkill python3; nohup ./run.sh"
-      args:
-        chdir: "{{ansible_env.HOME}}/deploy/"
+    - name: Enable (and start) minifed unit
+      systemd:
+        name: minifed
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+      become: true
+

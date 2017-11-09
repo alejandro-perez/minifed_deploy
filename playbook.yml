@@ -96,6 +96,13 @@
         chdir: "{{ansible_env.HOME}}/fedoidc"
       become: true
 
+    - name: Fix python lib error in LXC
+      lineinfile:
+        path: "/usr/local/lib/python3.5/dist-packages/easy-install.pth"
+        regexp: "/usr/lib/python3/dist-packages"
+        line: ""
+      become: true
+
     - name: Deploy minifed
       shell: "fed_oprp_setup.py {{ansible_env.HOME}}/fedoidc/ {{ansible_env.HOME}}/deploy"
 

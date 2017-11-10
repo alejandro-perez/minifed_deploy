@@ -1,7 +1,7 @@
 - hosts: all
   vars:
     # This will be used for the OP's ISSUER and RP's BASEURL.
-    hostname: "localhost"
+    hostname: "alex.inf.um.es"
   tasks:
     - name: Install minifed systemd unit
       copy:

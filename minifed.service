@@ -1,9 +1,9 @@
-[Unit]
 Description=Starts minifed
-Wants=network-online.target
-After=network-online.target
 
 [Service]
 WorkingDirectory=/home/ubuntu/deploy
 Type=forking
 ExecStart=/home/ubuntu/deploy/run.sh
+
+[Install]
+WantedBy=multi-user.target

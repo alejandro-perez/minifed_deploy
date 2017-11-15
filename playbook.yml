@@ -1,7 +1,7 @@
 - hosts: all
   vars:
     # This will be used for the OP's ISSUER and RP's BASEURL.
-    hostname: "alex.inf.um.es"
+    hostname: "localhost"
   tasks:
     - name: Install minifed systemd unit
       copy:
@@ -66,11 +66,10 @@
         repo: https://github.com/OpenIDC/pyoidc.git
         dest: "{{ansible_env.HOME}}/pyoidc"
 
-    - name: Download fedoidc (the last commit that worked)
+    - name: Download fedoidc
       git:
         repo: https://github.com/OpenIDC/fedoidc.git
         dest: "{{ansible_env.HOME}}/fedoidc"
-        version: f4108685f42b34f5bf9a4316e04fd19e52b5e432
 
     - name: Install pyoidc
       shell: "python3 setup.py install"

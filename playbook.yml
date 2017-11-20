@@ -65,11 +65,13 @@
       git:
         repo: https://github.com/OpenIDC/pyoidc.git
         dest: "{{ansible_env.HOME}}/pyoidc"
+        version: master
 
     - name: Download fedoidc
       git:
         repo: https://github.com/OpenIDC/fedoidc.git
         dest: "{{ansible_env.HOME}}/fedoidc"
+        version: master
 
     - name: Install pyoidc
       shell: "python3 setup.py install"

@@ -61,7 +61,7 @@
         state: latest
       become: true
 
-    - name: Download pyoidc
+    - name: Download pyoidc (the last commit that worked)
       git:
         repo: https://github.com/OpenIDC/pyoidc.git
         dest: "{{ansible_env.HOME}}/pyoidc"

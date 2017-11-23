@@ -122,7 +122,7 @@
         regexp: "ISSUER = 'https://localhost'"
         line: "ISSUER = 'https://{{hostname}}'"
 
-    - name: Replace BASEURL in OP's config file
+    - name: Replace BASEURL in RP's config file
       lineinfile:
         path: "{{ansible_env.HOME}}/deploy/rp/config.py"
         regexp: BASEURL = "https://localhost"
@@ -134,12 +134,12 @@
         chdir: "{{ansible_env.HOME}}/deploy"
 
     - name: Create OP cert
-      shell: 'openssl req -x509 -newkey rsa:4096 -keyout key.pem -nodes -out cert.pem -days 365  -subj "/CN=testop"'
+      shell: 'openssl req -x509 -newkey rsa:4096 -keyout key.pem -nodes -out cert.pem -days 365  -subj "/CN={{hostname}}"'
       args:
         chdir: "{{ansible_env.HOME}}/deploy/op/certs"
 
     - name: Create RP cert
-      shell: 'openssl req -x509 -newkey rsa:4096 -keyout key.pem -nodes -out cert.pem -days 365  -subj "/CN=testrp"'
+      shell: 'openssl req -x509 -newkey rsa:4096 -keyout key.pem -nodes -out cert.pem -days 365  -subj "/CN={{hostname}}"'
       args:
         chdir: "{{ansible_env.HOME}}/deploy/rp/certs"
 
